@@ -46,6 +46,7 @@ app.use(
 app.use(bodyParser.json());
 
 // Connect to Mongoose and set connection variable
+mongoose.set("strictQuery", false);
 const connection_url = "mongodb://localhost:27017/cartdb";
 mongoose.connect(connection_url, { useNewUrlParser: true });
 mongoose.connection.once("open", () => {
@@ -106,7 +107,7 @@ io.on("connection", (socket) => {
   socket.on("setUserId", ({ userId }) => {
     // Store the user ID and socket ID association
     userSocketMap.set(userId, socket.id);
-    console.log(`User ID ${userId} associated with Socket ID ${socket.id}`);
+    // console.log(`User ID ${userId} associated with Socket ID ${socket.id}`);
   });
   // Join Private Room
   socket.on("private_room", async ({ room_id, userID, participant }) => {
@@ -156,7 +157,8 @@ io.on("connection", (socket) => {
   });
   // leave private room
   socket.on("leave_private_room", async ({ roomID, userID }) => {
-    socket.leave(roomID);
+    // console.log("room leaving ", roomID)
+    // socket.leave(roomID);
     await ChatRoom.collection.findOne({ roomID }, async (err, data) => {
       if (err) {
         console.error("Error finding chatroom:", err);
@@ -164,7 +166,7 @@ io.on("connection", (socket) => {
       }
 
       if (data) {
-        console.log("Found chat room left:", data);
+        // console.log("Found chat room left:", data);
         let user_leaving_status = await data.participant_online_status;
         for (let i = 0; i < user_leaving_status?.length; i++) {
           if (user_leaving_status[i]._id.toString() == userID) {
@@ -191,7 +193,7 @@ io.on("connection", (socket) => {
   });
   // send message
   socket.on("send_message", async (data) => {
-    // console.log("data when message is sent", data);
+    console.log("data when message is sent", data);
     const receipents_status = async ({ room }) => {
       for (let i = 0; i < room.participant_online_status?.length; i++) {
         if (
@@ -200,9 +202,9 @@ io.on("connection", (socket) => {
           data.recepient_status = room.participant_online_status[i].status;
         }
       }
-      //   console.log(" date 3", data.recepient_status);
-      socket.to(data.roomID).emit("receive_message", data);
-      socket.emit("receive_message", data);
+        // console.log(" date 3", data.recepient_status);
+      // socket.to(data.roomID).emit("receive_message", data);
+      // socket.emit("receive_message", data);
       // console.log("data2 when message is sent", data);
     };
 
@@ -213,7 +215,7 @@ io.on("connection", (socket) => {
       }
 
       if (data) {
-        console.log("Your chat room:", data);
+        // console.log("Your chat room:", data);
         receipents_status({ room: data });
         // Do something with the found user
       } else {
@@ -248,6 +250,13 @@ io.on("connection", (socket) => {
         messageUpdated,
         options
       );
+      console.log(chatroomMessagesSaved,"<<<>>>>>")
+      let real_time_chat_data = {
+        messages: chatroomMessagesSaved.messages,
+        roomID: chatroomMessagesSaved.roomID
+      }
+        socket.to(data.roomID).emit("receive_message",  real_time_chat_data);
+      socket.emit("receive_message", real_time_chat_data)
     };
     await ChatRoom.collection.findOne({ roomID: data.roomID }, (err, data) => {
       if (err) {
@@ -291,7 +300,7 @@ io.on("connection", (socket) => {
             i--;
           }
         }
-        console.log("updeated", recepient_notifications.messages);
+        // console.log("updeated", recepient_notifications.messages);
         recepient_notifications.messages.push(notification);
         let updatedMessagesArray = recepient_notifications.messages;
         let messageUpdated = {
@@ -328,11 +337,11 @@ io.on("connection", (socket) => {
         );
         finalNotificationObject = await recepient_notifications.messages;
       }
-      console.log("saved messages notifications", finalNotificationObject);
+      // console.log("saved messages notifications", finalNotificationObject);
       let notification_messages_sorted = await finalNotificationObject.filter(
         (i) => i.author_id == userID && i.is_read == false
       );
-      console.log("notification_final", notification_messages_sorted);
+      // console.log("notification_final", notification_messages_sorted);
       let participant_socket_id = userSocketMap.get(participant);
       console.log("recepient socket id", participant_socket_id);
       socket.emit("notification_message", notification);
@@ -345,13 +354,13 @@ io.on("connection", (socket) => {
     socket.join(notification_roomID);
   });
   // notification leave room
-  socket.on(
-    "leave_notification_room",
-    async ({ notification_roomID, userID }) => {
-      console.log("notification_room_leave", notification_roomID);
-      socket.join(notification_roomID);
-    }
-  );
+  // socket.on(
+  //   "leave_notification_room",
+  //   async ({ notification_roomID, userID }) => {
+  //     // console.log("notification_room_leave", notification_roomID);
+  //     socket.join(notification_roomID);
+  //   }
+  // );
 
   socket.on("disconnect", () => {
     console.log(`Socket ${socket.id} disconnected`);
