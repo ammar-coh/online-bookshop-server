@@ -55,7 +55,7 @@ exports.new = async function (req, res) {
           objectId.toString()
         );
         const uniqueArray = await Array.from(new Set(stringArrayMember));
-        const existingChatid = data.data._id.toString();
+        const existingChatid = data?.data?._id.toString();
         const updates = {
           member: uniqueArray,
         };
@@ -94,7 +94,7 @@ exports.new = async function (req, res) {
         );
         console.log('chat_test', chat)
         for (let i = 0; i <  chat.participant_online_status?.length; i++) {
-          if ( chat.participant_online_status[i].id ==  req.body.participant) {
+          if ( chat.participant_online_status[i]?.id ==  req.body.participant) {
             chat.participant_online_status[i].status = true;
           }
         }
