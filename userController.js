@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("./userModel");
+const Notification = require("./notificationModel")
 // const auth = require("../middleware/auth");
 
 exports.register = async (req, res) => {
@@ -8,7 +9,12 @@ exports.register = async (req, res) => {
     let { email, password, user_name, cart, role } = req.body;
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
+
+    let notification = new Notification()
+    notification.save()
+    
     const user = new User();
+    user.notification = notification
     user.email = email;
     user.password = passwordHash;
     user.displayName = user_name;
@@ -49,7 +55,7 @@ exports.login = async (req, res) => {
     });
     // console.log('userSocket', user)
     res.json("welcome");
-  } catch (err) {}
+  } catch (err) { }
 
   //   res.json()
 };
@@ -64,7 +70,7 @@ exports.userList = async (req, res) => {
     res.json({ userList });
 
     // res.json({ allUsers: [(id: user._id), (displayName: user.displayName)] });
-  } catch (err) {}
+  } catch (err) { }
 };
 
 exports.loginData = async (req, res) => {
@@ -72,7 +78,7 @@ exports.loginData = async (req, res) => {
     const user = await User.findOne({ email: req.body.email });
 
     res.json("welcome");
-  } catch (err) {}
+  } catch (err) { }
 
   //   res.json()
 };

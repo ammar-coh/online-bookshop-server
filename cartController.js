@@ -10,10 +10,10 @@ exports.index = async (req, res) => {
   const getUser = await User.findById({
     _id: id,
   });
-  var convertCollectionToObj = getUser.toObject();
+  var convertCollectionToObj = getUser?.toObject();
   var userCart;
   var cartId;
-  switch (convertCollectionToObj.hasOwnProperty("cart")) {
+  switch (convertCollectionToObj?.hasOwnProperty("cart")) {
     case false:
       userCart = "No Cart in user database";
       break;

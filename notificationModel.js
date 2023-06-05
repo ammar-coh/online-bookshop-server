@@ -6,6 +6,7 @@ const notification = mongoose.Schema({
       author: String,
       message: String,
       author_id: String,
+      displayName:String, 
       is_read: { type: Boolean, default: false },
     },
   ],
