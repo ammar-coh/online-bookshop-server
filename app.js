@@ -88,12 +88,11 @@ const userSocketMap = new Map();
 // Socket.IO
 io.on("connection", (socket) => {
   console.log(`Socket ${socket.id} connectedd`);
-
-
-  socket.on("setUserId", ({ userId }) => {
+  console.log("rooms", socket.rooms)
+ 
+ socket.on("setUserId", ({ userId }) => {
     // Store the user ID and socket ID association
     userSocketMap.set(userId, socket.id);
-    console.log(`User ID ${userId} associated with Socket ID ${socket.id}`);
   });
   // Join Private Room
   socket.on("private_room", async ({ room_id, userID, participant }) => {
@@ -155,7 +154,7 @@ io.on("connection", (socket) => {
         // console.log("Found chat room left:", data);
         let user_leaving_status = await data.participant_online_status;
         for (let i = 0; i < user_leaving_status?.length; i++) {
-          if (user_leaving_status[i]._id.toString() == userID) {
+          if (user_leaving_status[i]?._id.toString() == userID) {
             user_leaving_status[i].status = false;
           }
         }
@@ -276,73 +275,97 @@ io.on("connection", (socket) => {
         _id: participant,
       });
       var convertCollectionToObj = recepient.toObject();
-      if (convertCollectionToObj.hasOwnProperty("notification")) {
-        let recepient_new_notification_id =
-          await recepient.notification._id.toString();
-        let recepient_notifications = await Notification.findById({
-          _id: recepient_new_notification_id,
-        });
-        for (let i = 0; i < recepient_notifications?.messages?.length; i++) {
-          if (recepient_notifications.messages[i].author_id == userID) {
-            recepient_notifications.messages.splice(i, 1);
-            i--;
-          }
-        }
-        // console.log("updeated", recepient_notifications.messages);
-        recepient_notifications.messages.push(notification);
-        let updatedMessagesArray = recepient_notifications.messages;
-        console.log('upda', typeof (updatedMessagesArray.length))
-        let messageUpdated = {
-          messages: updatedMessagesArray,
-          total: updatedMessagesArray.length
-        };
-        let options = { new: true };
-        let notificationsMessagesSaved = await Notification.findByIdAndUpdate(
-          recepient_new_notification_id,
-          messageUpdated,
-          options
-        );
-        finalNotificationObject = await notificationsMessagesSaved;
+      // if (convertCollectionToObj.hasOwnProperty("notification")) {
+      //   let recepient_new_notification_id =
+      //     await recepient.notification._id.toString();
+      //   let recepient_notifications = await Notification.findById({
+      //     _id: recepient_new_notification_id,
+      //   });
+      //   for (let i = 0; i < recepient_notifications?.messages?.length; i++) {
+      //     if (recepient_notifications.messages[i].author_id == userID) {
+      //       recepient_notifications.messages.splice(i, 1);
+      //       i--;
+      //     }
+      //   }
+      //   // console.log("updeated", recepient_notifications.messages);
+      //   recepient_notifications.messages.push(notification);
+      //   let updatedMessagesArray = recepient_notifications.messages;
+      //   console.log('upda', typeof (updatedMessagesArray.length))
+      //   let messageUpdated = {
+      //     messages: updatedMessagesArray,
+      //     total: updatedMessagesArray.length
+      //   };
+      //   let options = { new: true };
+      //   let notificationsMessagesSaved = await Notification.findByIdAndUpdate(
+      //     recepient_new_notification_id,
+      //     messageUpdated,
+      //     options
+      //   );
+      //   finalNotificationObject = await notificationsMessagesSaved;
+      // }
+      // else {
+      //   let new_notification_instance = await new Notification();
+      //   new_notification_instance.save();
+      //   recepient.notification = await new_notification_instance;
+      //   // await User.findByIdAndUpdate(
+      //   //   recepient._id,
+      //   //   { notification: recepient.notification },
+      //   //   { new: true }
+      //   // );
+      //   await recepient.save();
+
+      //   let recepient_new_notification_id =
+      //     await recepient.notification._id.toString();
+      //   let recepient_notifications = await Notification.findByIdAndUpdate(
+      //     recepient_new_notification_id,
+      //     { messages: [notification] },
+      //     { new: true }
+
+      //   );
+
+      //   // await recepient_notifications.messages.push(notification);
+      //   // recepient_notifications.save()
+      //   // let updatedMessagesArray = recepient_notifications.messages;
+      //   // let messageUpdated = {
+      //   //   messages: updatedMessagesArray,
+      //   // };
+      //   // let options = { new: true };
+      //   // let notificationsMessagesSaved = await Notification.findByIdAndUpdate(
+      //   //   recepient_new_notification_id,
+      //   //   messageUpdated,
+      //   //   options
+      //   // );
+      //   // finalNotificationObject = await recepient_notifications.messages;
+      // }
+      let recepient_new_notification_id =
+      await recepient.notification._id.toString();
+    let recepient_notifications = await Notification.findById({
+      _id: recepient_new_notification_id,
+    });
+    for (let i = 0; i < recepient_notifications?.messages?.length; i++) {
+      if (recepient_notifications.messages[i].author_id == userID) {
+        recepient_notifications.messages.splice(i, 1);
+        i--;
       }
-      else {
-        let new_notification_instance = await new Notification();
-        new_notification_instance.save();
-        recepient.notification = await new_notification_instance;
-        // await User.findByIdAndUpdate(
-        //   recepient._id,
-        //   { notification: recepient.notification },
-        //   { new: true }
-        // );
-        await recepient.save();
-
-        let recepient_new_notification_id =
-          await recepient.notification._id.toString();
-        let recepient_notifications = await Notification.findByIdAndUpdate(
-          recepient_new_notification_id,
-          { messages: [notification] },
-          { new: true }
-
-        );
-
-        // await recepient_notifications.messages.push(notification);
-        // recepient_notifications.save()
-        // let updatedMessagesArray = recepient_notifications.messages;
-        // let messageUpdated = {
-        //   messages: updatedMessagesArray,
-        // };
-        // let options = { new: true };
-        // let notificationsMessagesSaved = await Notification.findByIdAndUpdate(
-        //   recepient_new_notification_id,
-        //   messageUpdated,
-        //   options
-        // );
-        // finalNotificationObject = await recepient_notifications.messages;
-      }
+    }
+    recepient_notifications.messages.push(notification);
+    let updatedMessagesArray = recepient_notifications.messages;
+    console.log('upda', typeof (updatedMessagesArray.length))
+    let messageUpdated = {
+      messages: updatedMessagesArray,
+      total: updatedMessagesArray.length
+    };
+    let options = { new: true };
+    let notificationsMessagesSaved = await Notification.findByIdAndUpdate(
+      recepient_new_notification_id,
+      messageUpdated,
+      options
+    );
+    finalNotificationObject = await notificationsMessagesSaved;
 
       console.log("notification_final", finalNotificationObject);
       let participant_socket_id = userSocketMap.get(participant);
       console.log("recepient socket id", participant_socket_id);
-      socket.emit("notification_message", { recipient_id: participant, data: finalNotificationObject });
       socket.to(participant_socket_id).emit("notification_message", { recipient_id: participant, data: finalNotificationObject });
     }
   );
@@ -376,10 +399,10 @@ io.on("connection", (socket) => {
   });
 
 
-  socket.on("disconnect", () => {
+  socket.on("disconnect", ({roomID}) => {
     console.log(`Socket ${socket.id} disconnected`);
-    // userSocketMap.delete(userId);
-    // console.log(`User ID ${userId} disconnected`);
+    console.log(roomID, "on refesh?????????")
+   socket.leave(roomID)
   });
 });
 
