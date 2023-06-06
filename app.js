@@ -87,16 +87,13 @@ const userSocketMap = new Map();
 
 // Socket.IO
 io.on("connection", (socket) => {
-  console.log(`Socket ${socket.id} connectedd`);
-  console.log("rooms", socket.rooms)
- 
- socket.on("setUserId", ({ userId }) => {
+
+  socket.on("setUserId", ({ userId }) => {
     // Store the user ID and socket ID association
     userSocketMap.set(userId, socket.id);
   });
   // Join Private Room
   socket.on("private_room", async ({ room_id, userID, participant }) => {
-    console.log("joining room ", room_id);
     socket.join(room_id);
     await ChatRoom.collection.findOne(
       { roomID: room_id },
@@ -107,7 +104,6 @@ io.on("connection", (socket) => {
         }
 
         if (data) {
-          // console.log("Found chat room joined:", data);
           let messagesOfParticipant = await data.messages;
           let user_joining_status = await data.participant_online_status;
           for (let i = 0; i < user_joining_status?.length; i++) {
@@ -131,19 +127,15 @@ io.on("connection", (socket) => {
             messageUpdated,
             options
           );
-          // console.log("draft joining", draft);
-          // Do something with the found user
+
         } else {
           console.log("chat room not found???");
         }
       }
     );
-    // console.log("socket.rooms", socket.rooms);
   });
   // leave private room
   socket.on("leave_private_room", async ({ roomID, userID }) => {
-    console.log("room leaving ", roomID)
-    // socket.leave(roomID);
     await ChatRoom.collection.findOne({ roomID }, async (err, data) => {
       if (err) {
         console.error("Error finding chatroom:", err);
@@ -151,7 +143,6 @@ io.on("connection", (socket) => {
       }
 
       if (data) {
-        // console.log("Found chat room left:", data);
         let user_leaving_status = await data.participant_online_status;
         for (let i = 0; i < user_leaving_status?.length; i++) {
           if (user_leaving_status[i]?._id.toString() == userID) {
@@ -169,8 +160,6 @@ io.on("connection", (socket) => {
           statusUpdated,
           options
         );
-        // console.log("draft leave room", draft);
-        // Do something with the found user
       } else {
         console.log("chat room not found???");
       }
@@ -178,7 +167,6 @@ io.on("connection", (socket) => {
   });
   // send message
   socket.on("send_message", async (data) => {
-    // console.log("data when message is sent", data);
     const receipents_status = async ({ room }) => {
       for (let i = 0; i < room.participant_online_status?.length; i++) {
         if (
@@ -198,9 +186,7 @@ io.on("connection", (socket) => {
       }
 
       if (data) {
-        // console.log("Your chat room:", data);
         receipents_status({ room: data });
-        // Do something with the found user
       } else {
         console.log("error");
       }
@@ -238,8 +224,6 @@ io.on("connection", (socket) => {
         roomID: chatroomMessagesSaved.roomID,
         receipent_status: data,
       }
-      console.log("staus_recipient", data)
-      console.log("data.room", data.roomID)
       socket.to(data.roomID).emit("receive_message", real_time_chat_data);
       socket.emit("receive_message", real_time_chat_data)
     };
@@ -250,9 +234,7 @@ io.on("connection", (socket) => {
       }
 
       if (data) {
-        // console.log("Found chat room:", data);
         saveMessageDB({ room: data });
-        // Do something with the found user
       } else {
         console.log("chat room not found");
       }
@@ -274,109 +256,42 @@ io.on("connection", (socket) => {
       let recepient = await User.findById({
         _id: participant,
       });
-      var convertCollectionToObj = recepient.toObject();
-      // if (convertCollectionToObj.hasOwnProperty("notification")) {
-      //   let recepient_new_notification_id =
-      //     await recepient.notification._id.toString();
-      //   let recepient_notifications = await Notification.findById({
-      //     _id: recepient_new_notification_id,
-      //   });
-      //   for (let i = 0; i < recepient_notifications?.messages?.length; i++) {
-      //     if (recepient_notifications.messages[i].author_id == userID) {
-      //       recepient_notifications.messages.splice(i, 1);
-      //       i--;
-      //     }
-      //   }
-      //   // console.log("updeated", recepient_notifications.messages);
-      //   recepient_notifications.messages.push(notification);
-      //   let updatedMessagesArray = recepient_notifications.messages;
-      //   console.log('upda', typeof (updatedMessagesArray.length))
-      //   let messageUpdated = {
-      //     messages: updatedMessagesArray,
-      //     total: updatedMessagesArray.length
-      //   };
-      //   let options = { new: true };
-      //   let notificationsMessagesSaved = await Notification.findByIdAndUpdate(
-      //     recepient_new_notification_id,
-      //     messageUpdated,
-      //     options
-      //   );
-      //   finalNotificationObject = await notificationsMessagesSaved;
-      // }
-      // else {
-      //   let new_notification_instance = await new Notification();
-      //   new_notification_instance.save();
-      //   recepient.notification = await new_notification_instance;
-      //   // await User.findByIdAndUpdate(
-      //   //   recepient._id,
-      //   //   { notification: recepient.notification },
-      //   //   { new: true }
-      //   // );
-      //   await recepient.save();
-
-      //   let recepient_new_notification_id =
-      //     await recepient.notification._id.toString();
-      //   let recepient_notifications = await Notification.findByIdAndUpdate(
-      //     recepient_new_notification_id,
-      //     { messages: [notification] },
-      //     { new: true }
-
-      //   );
-
-      //   // await recepient_notifications.messages.push(notification);
-      //   // recepient_notifications.save()
-      //   // let updatedMessagesArray = recepient_notifications.messages;
-      //   // let messageUpdated = {
-      //   //   messages: updatedMessagesArray,
-      //   // };
-      //   // let options = { new: true };
-      //   // let notificationsMessagesSaved = await Notification.findByIdAndUpdate(
-      //   //   recepient_new_notification_id,
-      //   //   messageUpdated,
-      //   //   options
-      //   // );
-      //   // finalNotificationObject = await recepient_notifications.messages;
-      // }
+     
       let recepient_new_notification_id =
-      await recepient.notification._id.toString();
-    let recepient_notifications = await Notification.findById({
-      _id: recepient_new_notification_id,
-    });
-    for (let i = 0; i < recepient_notifications?.messages?.length; i++) {
-      if (recepient_notifications.messages[i].author_id == userID) {
-        recepient_notifications.messages.splice(i, 1);
-        i--;
+        await recepient.notification._id.toString();
+      let recepient_notifications = await Notification.findById({
+        _id: recepient_new_notification_id,
+      });
+      for (let i = 0; i < recepient_notifications?.messages?.length; i++) {
+        if (recepient_notifications.messages[i].author_id == userID) {
+          recepient_notifications.messages.splice(i, 1);
+          i--;
+        }
       }
-    }
-    recepient_notifications.messages.push(notification);
-    let updatedMessagesArray = recepient_notifications.messages;
-    console.log('upda', typeof (updatedMessagesArray.length))
-    let messageUpdated = {
-      messages: updatedMessagesArray,
-      total: updatedMessagesArray.length
-    };
-    let options = { new: true };
-    let notificationsMessagesSaved = await Notification.findByIdAndUpdate(
-      recepient_new_notification_id,
-      messageUpdated,
-      options
-    );
-    finalNotificationObject = await notificationsMessagesSaved;
+      recepient_notifications.messages.push(notification);
+      let updatedMessagesArray = recepient_notifications.messages;
+      let messageUpdated = {
+        messages: updatedMessagesArray,
+        total: updatedMessagesArray.length
+      };
+      let options = { new: true };
+      let notificationsMessagesSaved = await Notification.findByIdAndUpdate(
+        recepient_new_notification_id,
+        messageUpdated,
+        options
+      );
+      finalNotificationObject = await notificationsMessagesSaved;
 
-      console.log("notification_final", finalNotificationObject);
       let participant_socket_id = userSocketMap.get(participant);
-      console.log("recepient socket id", participant_socket_id);
       socket.to(participant_socket_id).emit("notification_message", { recipient_id: participant, data: finalNotificationObject });
     }
   );
-  //notification join room
+  //notification delete room
   socket.on("delete_notification_message", async ({ userID, sender_id }) => {
     let findUser = await User.findById({
       _id: userID
     })
-    // let findRecipient = await User.findById({
-    //   _id:userID
-    // })
+   
 
     let my_notifications = await Notification.findById({
       _id: findUser.notification._id.toString(),
@@ -399,10 +314,9 @@ io.on("connection", (socket) => {
   });
 
 
-  socket.on("disconnect", ({roomID}) => {
+  socket.on("disconnect", () => {
     console.log(`Socket ${socket.id} disconnected`);
-    console.log(roomID, "on refesh?????????")
-   socket.leave(roomID)
+
   });
 });
 
