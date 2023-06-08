@@ -13,13 +13,7 @@ const users = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "notification",
   },
-  chatRoom: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "chatRoom",
-    },
-  ],
 
-  socketID: { type: String, default: "" },
+
 });
 module.exports = mongoose.model("users", users);

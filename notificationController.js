@@ -7,13 +7,9 @@ const User = require("./userModel");
 
 exports.index = async (req, res) => {
   var user_id = await req.query?.id;
-  await console.log('get_user_notification_1', user_id)
   let find_user = await User.findById({ _id: user_id });
-  console.log("get_user_notification_2", find_user)
   let notification_id = await find_user.notification._id.toString()
-  console.log("get_user_notification_3", notification_id)
   let user_notification = await Notification.findById({ _id: notification_id })
-  console.log("get_user_notification_4", user_notification)
 
   if (user_notification) {
     res.json({

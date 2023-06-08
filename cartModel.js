@@ -7,13 +7,13 @@ const cart = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "products",
       },
-      qty: { type: Number, default: 1 },
+      qty: { type: Number, default: 0 },
       image: String,
       price: Number,
     },
   ],
 
-  totalItems: { type: Number, default: 1 },
+  totalItems: { type: Number, default: 0 },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "users",
