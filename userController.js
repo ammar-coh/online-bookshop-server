@@ -2,29 +2,34 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("./userModel");
 const Notification = require("./notificationModel")
-// const auth = require("../middleware/auth");
+const Cart = require("./cartModel");
+
 
 exports.register = async (req, res) => {
   try {
-    let { email, password, user_name, cart, role } = req.body;
+    let { email, password, user_name, } = req.body;
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
 
-    let notification = new Notification()
+    let notification = new Notification()       // new instance of notification
     notification.save()
-    
+
+    let cart = new Cart()             // new instance of cart
+    cart.save()
+
     const user = new User();
     user.notification = notification
+    user.cart = cart
     user.email = email;
     user.password = passwordHash;
     user.displayName = user_name;
-    user.cart = cart;
     user.role = "admin";
     user.save();
+
     res.json({ user, confirm: "registered" });
-  } catch (err) {
+  }
+  catch (err) {
     res.status(500).json({ error: err.message });
-    // res.status(404).json({ error: err.message });
   }
 };
 
@@ -40,8 +45,13 @@ exports.login = async (req, res) => {
     if (!isMatch) return res.status(400).json({ msg: "Invalid credentials." });
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-    user.is_online = true;
-    user.save();
+  
+
+    user.is_online = true
+    let id = user?._id
+    let update = { is_online: true }
+    let option = { new: true }
+    let user_updated = await User.findByIdAndUpdate(id, update, option)
 
     res.json({
       token,
