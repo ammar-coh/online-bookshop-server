@@ -10,12 +10,14 @@ exports.index = async (req, res) => {
 };
 // Handle create new product
 exports.new = async function (req, res) {
-  let { image, price, rating, stock } = req.body;
+  let { image, price, rating, stock, title, author } = req.body;
   var product = new Product();
   var currentList = await Product.find();
   Object.assign(product, {
     image: image,
     price: price,
+    title:title, 
+    author:author,
     rating: rating,
     stock: stock,
   });

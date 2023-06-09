@@ -1,6 +1,8 @@
 //import mongoose from 'mongoose';
 var mongoose = require("mongoose");
 const product = mongoose.Schema({
+  title:String,
+  author:String,
   image: String,
   price: Number,
   id: Number,

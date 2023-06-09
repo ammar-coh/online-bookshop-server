@@ -11,10 +11,10 @@ exports.register = async (req, res) => {
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
 
-    let notification = new Notification()       // new instance of notification
+    let notification = new Notification()      
     notification.save()
 
-    let cart = new Cart()             // new instance of cart
+    let cart = new Cart()             
     cart.save()
 
     const user = new User();
@@ -63,24 +63,19 @@ exports.login = async (req, res) => {
         is_online: user.is_online,
       },
     });
-    // console.log('userSocket', user)
     res.json("welcome");
   } catch (err) { }
 
-  //   res.json()
 };
 exports.userList = async (req, res) => {
   try {
     const user = await User.find({});
-    // console.log("?X?X?X?X", user);
     const userList = user.map((i) => ({
       id: i._id,
       displayName: i.displayName,
     }));
     res.json({ userList });
-
-    // res.json({ allUsers: [(id: user._id), (displayName: user.displayName)] });
-  } catch (err) { }
+ } catch (err) { }
 };
 
 exports.loginData = async (req, res) => {
