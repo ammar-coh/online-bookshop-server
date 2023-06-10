@@ -11,10 +11,10 @@ exports.register = async (req, res) => {
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
 
-    let notification = new Notification()      
+    let notification = new Notification()
     notification.save()
 
-    let cart = new Cart()             
+    let cart = new Cart()
     cart.save()
 
     const user = new User();
@@ -40,12 +40,14 @@ exports.login = async (req, res) => {
     if (!user)
       return res
         .status(400)
-        .json({ msg: "No account with this email has been registered." });
+        .json({ message: "Please enter a correct email or create account first.", status: false, });
     const isMatch = await bcrypt.compare(req.body.password, user.password);
-    if (!isMatch) return res.status(400).json({ msg: "Invalid credentials." });
+    if (!isMatch) return res.status(400).json({
+      message: "Please enter a correct password", status: false,
+    });
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-  
+
 
     user.is_online = true
     let id = user?._id
@@ -54,12 +56,13 @@ exports.login = async (req, res) => {
     let user_updated = await User.findByIdAndUpdate(id, update, option)
 
     res.json({
+      message:"Login succesfull",
       token,
+      status: true,
       user: {
         id: user._id,
         displayName: user.displayName,
         role: user.role,
-        socketID: user.socketID,
         is_online: user.is_online,
       },
     });
@@ -75,7 +78,7 @@ exports.userList = async (req, res) => {
       displayName: i.displayName,
     }));
     res.json({ userList });
- } catch (err) { }
+  } catch (err) { }
 };
 
 exports.loginData = async (req, res) => {
