@@ -24,7 +24,7 @@ var port = process.env.PORT || 8081;
 // Send message for default URL
 //app.get('/', (req, res) => res.send('Hello World with Express'));
 
-var productRouter = require("./routes/product");
+var bookRouter = require("./routes/book");
 var usersRouter = require("./routes/users");
 var cartsRouter = require("./routes/cart");
 var chatRoomRouter = require("./routes/chatRoom");
@@ -65,7 +65,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use("/products", productRouter);
+app.use("/book", bookRouter);
 app.use("/users", usersRouter);
 app.use("/cart", cartsRouter);
 app.use("/chat", chatRoomRouter);

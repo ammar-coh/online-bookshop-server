@@ -1,4 +1,4 @@
-const Product = require("./productModel");
+const Product = require("./bookModel");
 //var mongoose = require('mongoose');
 const Auth = require("./auth");
 
@@ -10,7 +10,7 @@ exports.index = async (req, res) => {
 };
 // Handle create new product
 exports.new = async function (req, res) {
-  let { image, price, rating, stock, title, author } = req.body;
+  let { image, price, rating, stock, title, author,description,category } = req.body;
   var product = new Product();
   var currentList = await Product.find();
   Object.assign(product, {
@@ -20,6 +20,8 @@ exports.new = async function (req, res) {
     author:author,
     rating: rating,
     stock: stock,
+    description:description,
+    category:category
   });
   product.save();
   currentList.push(product);
@@ -34,17 +36,17 @@ exports.new = async function (req, res) {
 
 // Handle update product info
 exports.updating = async function (req, res) {
-  const id = req.body.product_id;
+  const id = req.body.book_id;
   const updates = req.body;
   const options = { new: true };
-  const products = await Product.findByIdAndUpdate(id, updates, options);
-  res.json(products);
+  const book = await Product.findByIdAndUpdate(id, updates, options);
+  res.json(book);
 };
 // Handle delete product info
 exports.delete = async function (req, res) {
-  const id = req.body.product_id;
+  const id = req.body.book_id;
   const options = { new: true };
-  const deleted = await Product.findByIdAndDelete(id, options);
-  console.log(deleted);
-  res.json(deleted);
+  const deletedBook = await Product.findByIdAndDelete(id, options);
+  console.log(deletedBook);
+  res.json(deletedBook);
 };
