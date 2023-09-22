@@ -1,4 +1,4 @@
-const Product = require("./productModel");
+const Product = require("./bookModel");
 var mongoose = require("mongoose");
 const Auth = require("./auth");
 const Cart = require("./cartModel");
