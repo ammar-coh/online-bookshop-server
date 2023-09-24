@@ -7,8 +7,8 @@ const auth = require("../auth");
 var bookController = require('../bookController');
 router.get('/list',auth,  bookController.index)
 router.post('/list', bookController.new);
-router.put('/list', auth, bookController.updating)
-router.delete('/list',auth,  bookController.delete);
+router.put('/list/:bookId', auth, bookController.updating)
+router.delete('/list/:bookId',auth,  bookController.delete);
 
 
 
