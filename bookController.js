@@ -36,23 +36,38 @@ exports.new = async function (req, res) {
 
 // Handle update product info
 exports.updating = async function (req, res) {
-  const id = req.params.bookId;
-  const updates = req.body;
-  const options = { new: true };
-  const book = await Book.findByIdAndUpdate(id, updates, options);
-  res.json(book);
+  try {
+    const id = req.params.bookId;
+    const updates = req.body;
+    const options = { new: true };
+    const book = await Book.findByIdAndUpdate(id, updates, options);
+    if (book) {
+      res.status(200).json({
+        status: true,
+        book: book
+      });
+    } else {
+      res.status(400).json({
+        status: false,
+        message: "Book doesn't exist"
+      })
+    }
+  } catch (error) {
+    res.status(500).json({ error: `Couldn't fint what the book in database or something went wrong` });
+
+  }
 };
 // Handle delete product info
 exports.delete = async function (req, res) {
   const id = await req.params.bookId;
   try {
-  const options = { new: true };
-  await Book.findByIdAndDelete(id, options);
-  const checkBookDeleted = await Book.findById({
-    _id: id,
-  });
-  var updatedBookList = await Book.find();
- 
+    const options = { new: true };
+    await Book.findByIdAndDelete(id, options);
+    const checkBookDeleted = await Book.findById({
+      _id: id,
+    });
+    var updatedBookList = await Book.find();
+
     if (!checkBookDeleted) {
       res.status(200).json({
         status: true,
