@@ -38,7 +38,20 @@ exports.new = async function (req, res) {
 exports.updating = async function (req, res) {
   try {
     const id = req.params.bookId;
-    const updates = req.body;
+    const { title, author, price, rating, stock, description, category } = req.body;
+    const updates = {
+      title,
+      author,
+      price,
+      rating,
+      stock,
+      description,
+      category,
+    };
+    if (req.file) {
+      const url = req.file ? req.file.path : '';
+      updates.image = req.protocol + '://' + req.get('host') + '/' + url.replace(/\\/g, '/'); // Add the filename of the uploaded image to the book data
+    }
     const options = { new: true };
     const book = await Book.findByIdAndUpdate(id, updates, options);
     if (book) {
