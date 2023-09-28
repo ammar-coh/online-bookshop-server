@@ -56,7 +56,7 @@ exports.login = async (req, res) => {
     let user_updated = await User.findByIdAndUpdate(id, update, option)
 
     res.json({
-      message:"Login succesfull",
+      message: "Login succesfull",
       token,
       status: true,
       user: {
@@ -64,9 +64,14 @@ exports.login = async (req, res) => {
         displayName: user.displayName,
         role: user.role,
         is_online: user.is_online,
+        lastName: user.lastName,
+        firstName: user.firstName,
+        age: user.ageBracket,
+        imageURL: user.imageURL,
+        country: user.country,
+        gender: user.gender,
       },
     });
-    res.json("welcome");
   } catch (err) { }
 
 };
@@ -75,18 +80,98 @@ exports.userList = async (req, res) => {
     const user = await User.find({});
     const userList = user.map((i) => ({
       id: i._id,
+      email:i.email,
       displayName: i.displayName,
+      imageURL: i.imageURL,
+      is_online: i.is_online
     }));
     res.json({ userList });
   } catch (err) { }
 };
 
-exports.loginData = async (req, res) => {
+
+exports.updating = async function (req, res) {
   try {
-    const user = await User.findOne({ email: req.body.email });
+    const id = req.params.userId;
+    console.log('id', id)
+    const salt = await bcrypt.genSalt();
 
-    res.json("welcome");
-  } catch (err) { }
+    const { displayName, firstName, lastName, email, password, country, age, gender } = req.body;
+    const updates = {
+      displayName,
+      firstName,
+      lastName,
+      email,
+      country,
+      ageBracket: age,
+      gender,
+      is_online: true,
+      email
+    };
+    if (password) {
+      const passwordHash = await bcrypt.hash(password, salt);
+      upadate.password = passwordHash
+    }
+    if (req.file) {
+      const url = req.file ? req.file.path : '';
+      updates.imageURL = req.protocol + '://' + req.get('host') + '/' + url.replace(/\\/g, '/'); // Add the filename of the uploaded image to the book data
+    }
+    const options = { new: true };
+    const user = await User.findByIdAndUpdate(id, updates, options);
+    const update = {
+      imageURL: user.imageURL,
+      country: user.country,
+      displayName: user.displayName,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      gender: user.gender,
+      is_online: user.is_online,
+      role: user.role,
+      id: user._id,
+      age: user.ageBracket
+    }
+    if (user) {
+      res.status(200).json({
+        status: true,
+        user: update
+      });
+    } else {
+      res.status(400).json({
+        status: false,
+        message: "user doesn't exist"
+      })
+    }
+  } catch (error) {
+    res.status(500).json({ error: `Couldn't fint what the user in database or something went wrong` });
 
-  //   res.json()
+  }
+};
+
+exports.logout = async function (req, res) {
+  try {
+    const id = req.params.userId;
+    const is_onlineStatus = {
+      is_online: false,
+    };
+    const options = { new: true };
+    const user = await User.findByIdAndUpdate(id, is_onlineStatus, options);
+    const update = {
+      is_online: user.is_online,
+    }
+    if (user) {
+      res.status(200).json({
+        status: true,
+        user: update
+      });
+    } else {
+      res.status(400).json({
+        status: false,
+        message: "logout failed"
+      })
+    }
+  } catch (error) {
+    res.status(500).json({ error: `Couldn't fint what the user in database or something went wrong` });
+
+  }
 };

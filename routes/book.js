@@ -17,7 +17,7 @@ const upload = multer({ storage });
 
 var bookController = require('../bookController');
 router.get('/list',auth,  bookController.index)
-router.post('/list', bookController.new);
+router.post('/list',auth, upload.single('image'), bookController.new);
 router.put('/list/:bookId', auth, upload.single('image'), bookController.updating)
 router.delete('/list/:bookId',auth, bookController.delete);
 
