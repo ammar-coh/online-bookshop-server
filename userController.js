@@ -70,6 +70,7 @@ exports.login = async (req, res) => {
         imageURL: user.imageURL,
         country: user.country,
         gender: user.gender,
+        email: user.email
       },
     });
   } catch (err) { }
@@ -80,7 +81,7 @@ exports.userList = async (req, res) => {
     const user = await User.find({});
     const userList = user.map((i) => ({
       id: i._id,
-      email:i.email,
+      email: i.email,
       displayName: i.displayName,
       imageURL: i.imageURL,
       is_online: i.is_online
@@ -93,12 +94,8 @@ exports.userList = async (req, res) => {
 exports.updating = async function (req, res) {
   try {
     const id = req.params.userId;
-    console.log('id', id)
-    const salt = await bcrypt.genSalt();
-
-    const { displayName, firstName, lastName, email, password, country, age, gender } = req.body;
+    const { userName, firstName, lastName, email, password, country, age, gender } = req.body;
     const updates = {
-      displayName,
       firstName,
       lastName,
       email,
@@ -106,12 +103,9 @@ exports.updating = async function (req, res) {
       ageBracket: age,
       gender,
       is_online: true,
-      email
+      email,
+      displayName: userName
     };
-    if (password) {
-      const passwordHash = await bcrypt.hash(password, salt);
-      upadate.password = passwordHash
-    }
     if (req.file) {
       const url = req.file ? req.file.path : '';
       updates.imageURL = req.protocol + '://' + req.get('host') + '/' + url.replace(/\\/g, '/'); // Add the filename of the uploaded image to the book data
@@ -145,6 +139,42 @@ exports.updating = async function (req, res) {
   } catch (error) {
     res.status(500).json({ error: `Couldn't fint what the user in database or something went wrong` });
 
+  }
+};
+
+
+exports.updatePassword = async function (req, res) {
+  try {
+    const id = req.query.userId;
+    const { previousPassword, newPassword } = req.body;
+    let user = await User.findById({
+      _id: id,
+    });
+    if (!user) {
+      return res.status(400).json({
+        status: false,
+        message: "User doesn't exist"
+      });
+    }
+    const currentPassword = user.password
+    const passwordMatch = await bcrypt.compare(previousPassword, currentPassword)
+    if (!passwordMatch) {
+      return res.status(400).json({
+        status: false,
+        message: "Current password doesn't match"
+      });
+    }
+    const salt = await bcrypt.genSalt();
+    const passwordHash = await bcrypt.hash(newPassword, salt);
+    // Update the password in the database
+    user.password = passwordHash;
+    await user.save();
+    res.status(200).json({
+      status: true,
+      message: "Password changed"
+    });
+  } catch (error) {
+    res.status(500).json({ error: `Couldn't fint what the user in database or something went wrong` });
   }
 };
 

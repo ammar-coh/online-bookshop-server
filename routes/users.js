@@ -22,6 +22,7 @@ router.route('/login').post(userController.login);
 router.route('/userList').get(userController.userList);
 router.put('/update/:userId', auth, upload.single('imageFile'), userController.updating)
 router.put('/logout/:userId', userController.logout)
+router.put('/change_password/:userId', auth, userController.updatePassword)
 
 
 
