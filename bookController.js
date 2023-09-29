@@ -6,15 +6,14 @@ const Auth = require("./auth");
 
 exports.index = async (req, res) => {
   const list = await Book.find();
-  res.json(list);
+  res.status(200).json(list);
 };
 // Handle create new product
 exports.new = async function (req, res) {
-  let { image, price, rating, stock, title, author, description, category } = req.body;
+  let { price, rating, stock, title, author, description, category } = req.body;
   var book = new Book();
   var currentList = await Book.find();
   Object.assign(book, {
-    image: image,
     price: price,
     title: title,
     author: author,
@@ -23,14 +22,16 @@ exports.new = async function (req, res) {
     description: description,
     category: category
   });
+  if (req.file) {
+    const newUrl = req.file ? req.file.path : '';
+    book.image = req.protocol + '://' + req.get('host') + '/' + newUrl.replace(/\\/g, '/'); 
+  }
   book.save();
   currentList.push(book);
-
-  var updatedList = currentList;
-  res.json({
-    message: "new product has been added!",
+  res.status(200).json({
+    status:true,
+    message: "new book has been added!",
     data: book,
-    updatedBooklist: updatedList,
   });
 };
 
@@ -38,7 +39,20 @@ exports.new = async function (req, res) {
 exports.updating = async function (req, res) {
   try {
     const id = req.params.bookId;
-    const updates = req.body;
+    const { title, author, price, rating, stock, description, category } = req.body;
+    const updates = {
+      title,
+      author,
+      price,
+      rating,
+      stock,
+      description,
+      category,
+    };
+    if (req.file) {
+      const url = req.file ? req.file.path : '';
+      updates.image = req.protocol + '://' + req.get('host') + '/' + url.replace(/\\/g, '/'); // Add the filename of the uploaded image to the book data
+    }
     const options = { new: true };
     const book = await Book.findByIdAndUpdate(id, updates, options);
     if (book) {

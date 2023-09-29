@@ -56,7 +56,7 @@ exports.login = async (req, res) => {
     let user_updated = await User.findByIdAndUpdate(id, update, option)
 
     res.json({
-      message:"Login succesfull",
+      message: "Login succesfull",
       token,
       status: true,
       user: {
@@ -64,9 +64,15 @@ exports.login = async (req, res) => {
         displayName: user.displayName,
         role: user.role,
         is_online: user.is_online,
+        lastName: user.lastName,
+        firstName: user.firstName,
+        age: user.ageBracket,
+        imageURL: user.imageURL,
+        country: user.country,
+        gender: user.gender,
+        email: user.email
       },
     });
-    res.json("welcome");
   } catch (err) { }
 
 };
@@ -75,18 +81,127 @@ exports.userList = async (req, res) => {
     const user = await User.find({});
     const userList = user.map((i) => ({
       id: i._id,
+      email: i.email,
       displayName: i.displayName,
+      imageURL: i.imageURL,
+      is_online: i.is_online
     }));
     res.json({ userList });
   } catch (err) { }
 };
 
-exports.loginData = async (req, res) => {
+
+exports.updating = async function (req, res) {
   try {
-    const user = await User.findOne({ email: req.body.email });
+    const id = req.params.userId;
+    const { userName, firstName, lastName, email, password, country, age, gender } = req.body;
+    const updates = {
+      firstName,
+      lastName,
+      email,
+      country,
+      ageBracket: age,
+      gender,
+      is_online: true,
+      email,
+      displayName: userName
+    };
+    if (req.file) {
+      const url = req.file ? req.file.path : '';
+      updates.imageURL = req.protocol + '://' + req.get('host') + '/' + url.replace(/\\/g, '/'); // Add the filename of the uploaded image to the book data
+    }
+    const options = { new: true };
+    const user = await User.findByIdAndUpdate(id, updates, options);
+    const update = {
+      imageURL: user.imageURL,
+      country: user.country,
+      displayName: user.displayName,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      gender: user.gender,
+      is_online: user.is_online,
+      role: user.role,
+      id: user._id,
+      age: user.ageBracket
+    }
+    if (user) {
+      res.status(200).json({
+        status: true,
+        user: update
+      });
+    } else {
+      res.status(400).json({
+        status: false,
+        message: "user doesn't exist"
+      })
+    }
+  } catch (error) {
+    res.status(500).json({ error: `Couldn't fint what the user in database or something went wrong` });
 
-    res.json("welcome");
-  } catch (err) { }
+  }
+};
 
-  //   res.json()
+
+exports.updatePassword = async function (req, res) {
+  try {
+    const id = req.query.userId;
+    const { previousPassword, newPassword } = req.body;
+    let user = await User.findById({
+      _id: id,
+    });
+    if (!user) {
+      return res.status(400).json({
+        status: false,
+        message: "User doesn't exist"
+      });
+    }
+    const currentPassword = user.password
+    const passwordMatch = await bcrypt.compare(previousPassword, currentPassword)
+    if (!passwordMatch) {
+      return res.status(400).json({
+        status: false,
+        message: "Current password doesn't match"
+      });
+    }
+    const salt = await bcrypt.genSalt();
+    const passwordHash = await bcrypt.hash(newPassword, salt);
+    // Update the password in the database
+    user.password = passwordHash;
+    await user.save();
+    res.status(200).json({
+      status: true,
+      message: "Password changed"
+    });
+  } catch (error) {
+    res.status(500).json({ error: `Couldn't fint what the user in database or something went wrong` });
+  }
+};
+
+exports.logout = async function (req, res) {
+  try {
+    const id = req.params.userId;
+    const is_onlineStatus = {
+      is_online: false,
+    };
+    const options = { new: true };
+    const user = await User.findByIdAndUpdate(id, is_onlineStatus, options);
+    const update = {
+      is_online: user.is_online,
+    }
+    if (user) {
+      res.status(200).json({
+        status: true,
+        user: update
+      });
+    } else {
+      res.status(400).json({
+        status: false,
+        message: "logout failed"
+      })
+    }
+  } catch (error) {
+    res.status(500).json({ error: `Couldn't fint what the user in database or something went wrong` });
+
+  }
 };

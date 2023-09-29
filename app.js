@@ -11,6 +11,8 @@ const { Server } = require("socket.io");
 const ChatRoom = require("./chatRoomModel");
 const User = require("./userModel");
 const Notification = require("./notificationModel");
+const multer = require('multer');
+
 //import cors from 'cors';
 
 let mongoose = require("mongoose");
@@ -37,6 +39,9 @@ const io = new Server(httpServer, {
     origin: "http://localhost:3001",
   },
 });
+app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static('public'));
+app.use('/public', express.static('public'));
 app.use(cors());
 app.use(
   bodyParser.urlencoded({
@@ -63,8 +68,6 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "public")));
-
 app.use("/book", bookRouter);
 app.use("/users", usersRouter);
 app.use("/cart", cartsRouter);
@@ -319,6 +322,8 @@ io.on("connection", (socket) => {
 
   });
 });
+
+// Create a storage engine for Multer (you can customize this as needed)
 
 httpServer.listen(port, function () {
   console.log("Port is running" + " " + port);
