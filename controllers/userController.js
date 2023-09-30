@@ -1,31 +1,31 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const User = require("./userModel");
-const Notification = require("./notificationModel")
-const Cart = require("./cartModel");
+const User = require("../models/userModel");
+const Notification = require("../models/notificationModel")
+const Cart = require("../models/cartModel");
 
 
 exports.register = async (req, res) => {
   try {
-    let { email, password, user_name, } = req.body;
+    let { email, password, displayName, userName, } = req.body;
+    const userNameAvailable = await User.findOne({ userName: userName });
+
+    if (userNameAvailable) return res.status(400).json({ status: false, message: "user name already taken" })
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
-
     let notification = new Notification()
     notification.save()
-
     let cart = new Cart()
     cart.save()
-
     const user = new User();
     user.notification = notification
     user.cart = cart
     user.email = email;
+    user.userName = userName
     user.password = passwordHash;
-    user.displayName = user_name;
+    user.displayName = displayName;
     user.role = "admin";
     user.save();
-
     res.json({ user, confirm: "registered" });
   }
   catch (err) {
@@ -38,9 +38,7 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ email: req.body.email });
 
     if (!user)
-      return res
-        .status(400)
-        .json({ message: "Please enter a correct email or create account first.", status: false, });
+      return res.status(400).json({ message: "Please enter a correct email or create account first.", status: false, });
     const isMatch = await bcrypt.compare(req.body.password, user.password);
     if (!isMatch) return res.status(400).json({
       message: "Please enter a correct password", status: false,
@@ -70,7 +68,8 @@ exports.login = async (req, res) => {
         imageURL: user.imageURL,
         country: user.country,
         gender: user.gender,
-        email: user.email
+        email: user.email,
+        userName:user.userName
       },
     });
   } catch (err) { }
@@ -84,7 +83,8 @@ exports.userList = async (req, res) => {
       email: i.email,
       displayName: i.displayName,
       imageURL: i.imageURL,
-      is_online: i.is_online
+      is_online: i.is_online,
+      userName: i.userName
     }));
     res.json({ userList });
   } catch (err) { }
@@ -123,7 +123,8 @@ exports.updating = async function (req, res) {
       is_online: user.is_online,
       role: user.role,
       id: user._id,
-      age: user.ageBracket
+      age: user.ageBracket,
+      userName: user.userName
     }
     if (user) {
       res.status(200).json({
@@ -145,7 +146,7 @@ exports.updating = async function (req, res) {
 
 exports.updatePassword = async function (req, res) {
   try {
-    const id = req.query.userId;
+    const id = req.params.userId;
     const { previousPassword, newPassword } = req.body;
     let user = await User.findById({
       _id: id,
@@ -161,7 +162,7 @@ exports.updatePassword = async function (req, res) {
     if (!passwordMatch) {
       return res.status(400).json({
         status: false,
-        message: "Current password doesn't match"
+        message: "Current password is incorrect!"
       });
     }
     const salt = await bcrypt.genSalt();

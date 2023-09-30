@@ -1,6 +1,6 @@
-const Book = require("./bookModel");
+const Book = require("../models/bookModel");
 //var mongoose = require('mongoose');
-const Auth = require("./auth");
+const Auth = require("../auth");
 
 // Handle index actions
 

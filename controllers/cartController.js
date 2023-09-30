@@ -1,8 +1,8 @@
-const Product = require("./bookModel");
+const Product = require("../models/bookModel");
 var mongoose = require("mongoose");
-const Auth = require("./auth");
-const Cart = require("./cartModel");
-const User = require("./userModel");
+const Auth = require("../auth");
+const Cart = require("../models/cartModel");
+const User = require("../models/userModel");
 
 // Handle show user cart
 exports.index = async (req, res) => {

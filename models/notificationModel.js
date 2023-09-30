@@ -3,7 +3,9 @@ var mongoose = require("mongoose");
 const notification = mongoose.Schema({
   messages: [
     {
-      author: String,
+      roomID:String,
+      imageURL: String,
+      authorUsername: String,
       message: String,
       author_id: String,
       displayName:String, 

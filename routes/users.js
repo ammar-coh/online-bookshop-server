@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var userController = require('../userController');
+var userController = require('../controllers/userController');
 const multer = require('multer');
 const auth = require("../auth");
 /* GET users listing. */

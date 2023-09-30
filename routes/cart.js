@@ -4,7 +4,7 @@ const auth = require("../auth");
 
 /* GET home page. */
 // Product routes
-var cartController = require('../cartController');
+var cartController = require('../controllers/cartController');
 
 router.post('/user-cart', auth, cartController.new);
 router.delete('/user-cart', auth, cartController.delete);
