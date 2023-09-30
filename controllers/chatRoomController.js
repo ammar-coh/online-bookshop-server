@@ -1,6 +1,6 @@
-const ChatRoom = require("./chatRoomModel");
+const ChatRoom = require("../models/chatRoomModel");
 const { ObjectId } = require("mongodb");
-const Auth = require("./auth");
+const Auth = require("../auth");
 const bodyParser = require("body-parser");
 
 // Handle index actions

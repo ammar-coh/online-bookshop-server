@@ -8,9 +8,9 @@ const cors = require("cors");
 const Auth = require("./auth");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
-const ChatRoom = require("./chatRoomModel");
-const User = require("./userModel");
-const Notification = require("./notificationModel");
+const ChatRoom = require("./models/chatRoomModel");
+const User = require("./models/userModel");
+const Notification = require("./models/notificationModel");
 const multer = require('multer');
 
 //import cors from 'cors';
@@ -247,12 +247,14 @@ io.on("connection", (socket) => {
   socket.on(
     "notification_channel",
     async ({ message, userID, participant }) => {
-
+console.log('what is received at notificaon channel',message )
       let notification = {
-        author: message.author,
+        authorUsername: message.authorUserName,
         author_id: message.author_id,
         message: message.message,
-        displayName: message.displayName
+        displayName: message.displayName,
+        imageURL:message. authorImage,
+        roomID:message.roomID
       };
       let finalNotificationObject;
 
@@ -284,7 +286,7 @@ io.on("connection", (socket) => {
         options
       );
       finalNotificationObject = await notificationsMessagesSaved;
-
+      console.log("finalNotification object",finalNotificationObject)
       let participant_socket_id = userSocketMap.get(participant);
       socket.to(participant_socket_id).emit("notification_message", { recipient_id: participant, data: finalNotificationObject });
     }
