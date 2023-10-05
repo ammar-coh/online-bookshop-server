@@ -85,13 +85,13 @@ exports.delete = async function (req, res) {
     if (!checkBookDeleted) {
       res.status(200).json({
         status: true,
-        updatedBookList: updatedBookList
+        bookId:id
       })
     }
     else {
       res.status(400).json({
         status: false,
-        updatedBookList: updatedBookList
+        bookId:id
       })
     }
   }
