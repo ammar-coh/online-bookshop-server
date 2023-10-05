@@ -53,26 +53,38 @@ exports.login = async (req, res) => {
     let option = { new: true }
     let user_updated = await User.findByIdAndUpdate(id, update, option)
 
-    res.json({
-      message: "Login succesfull",
-      token,
-      status: true,
-      user: {
-        id: user._id,
-        displayName: user.displayName,
-        role: user.role,
-        is_online: user.is_online,
-        lastName: user.lastName,
-        firstName: user.firstName,
-        age: user.ageBracket,
-        imageURL: user.imageURL,
-        country: user.country,
-        gender: user.gender,
-        email: user.email,
-        userName:user.userName
-      },
-    });
-  } catch (err) { }
+    if (user_updated){
+      res.status(200).json({
+        message: "Login succesfull",
+        token,
+        status: true,
+        user: {
+          id: user._id,
+          displayName: user.displayName,
+          role: user.role,
+          is_online: user.is_online,
+          lastName: user.lastName,
+          firstName: user.firstName,
+          age: user.ageBracket,
+          imageURL: user.imageURL,
+          country: user.country,
+          gender: user.gender,
+          email: user.email,
+          userName:user.userName
+        },
+      });
+    }
+    else {
+      res.status(400).json({
+        status: false,
+        message: "user doesn't exist"
+      })
+    }
+  
+  } catch (err) { 
+    res.status(500).json({ err: `Couldn't fint what the user in database or something went wrong` });
+
+  }
 
 };
 exports.userList = async (req, res) => {
