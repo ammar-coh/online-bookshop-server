@@ -52,7 +52,7 @@ app.use(bodyParser.json());
 
 // Connect to Mongoose and set connection variable
 mongoose.set("strictQuery", false);
-const connection_url = "mongodb://localhost:27017/cartdb";
+const connection_url = "mongodb://localhost:27017/liberty_books";
 mongoose.connect(connection_url, { useNewUrlParser: true });
 mongoose.connection.once("open", () => {
   console.log("DB connected!!!");
@@ -247,7 +247,6 @@ io.on("connection", (socket) => {
   socket.on(
     "notification_channel",
     async ({ message, userID, participant }) => {
-console.log('what is received at notificaon channel',message )
       let notification = {
         authorUsername: message.authorUserName,
         author_id: message.author_id,
@@ -286,7 +285,6 @@ console.log('what is received at notificaon channel',message )
         options
       );
       finalNotificationObject = await notificationsMessagesSaved;
-      console.log("finalNotification object",finalNotificationObject)
       let participant_socket_id = userSocketMap.get(participant);
       socket.to(participant_socket_id).emit("notification_message", { recipient_id: participant, data: finalNotificationObject });
     }
