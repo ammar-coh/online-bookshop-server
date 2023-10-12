@@ -1,6 +1,6 @@
 # Ignore node_modules directory
 node_modules/
-
+public/uploads
 .env
 public/uploads/image-1696510872115fuck-640x996.jpg
 public/uploads/image-1696511131917fuck-640x996.jpg
