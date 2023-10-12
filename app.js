@@ -25,7 +25,7 @@ var port = process.env.PORT || 8081;
 
 // Send message for default URL
 //app.get('/', (req, res) => res.send('Hello World with Express'));
-
+var searchRouter = require("./routes/search")
 var bookRouter = require("./routes/book");
 var usersRouter = require("./routes/users");
 var cartsRouter = require("./routes/cart");
@@ -68,6 +68,7 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use("/search",searchRouter)
 app.use("/book", bookRouter);
 app.use("/users", usersRouter);
 app.use("/cart", cartsRouter);
@@ -252,15 +253,15 @@ io.on("connection", (socket) => {
         author_id: message.author_id,
         message: message.message,
         displayName: message.displayName,
-        imageURL:message. authorImage,
-        roomID:message.roomID
+        imageURL: message.authorImage,
+        roomID: message.roomID
       };
       let finalNotificationObject;
 
       let recepient = await User.findById({
         _id: participant,
       });
-     
+
       let recepient_new_notification_id =
         await recepient.notification._id.toString();
       let recepient_notifications = await Notification.findById({
@@ -294,7 +295,7 @@ io.on("connection", (socket) => {
     let findUser = await User.findById({
       _id: userID
     })
-   
+
 
     let my_notifications = await Notification.findById({
       _id: findUser.notification._id.toString(),
