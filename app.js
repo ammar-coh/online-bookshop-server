@@ -53,7 +53,7 @@ app.use(bodyParser.json());
 // Connect to Mongoose and set connection variable
 mongoose.set("strictQuery", false);
 // const connection_url = "mongodb://localhost:27017/liberty_books";
-const connection_url = "mongodb+srv://ammarkhn91:vzXqS2tqt5Zhbwzt@libertybooks.4kkssp9.mongodb.net/?retryWrites=true&w=majority";
+const connection_url = process.env.MONGODB_URI;
 mongoose.connect(connection_url, { useNewUrlParser: true });
 mongoose.connection.once("open", () => {
   console.log("DB connected!!!");
