@@ -52,12 +52,11 @@ app.use(bodyParser.json());
 
 // Connect to Mongoose and set connection variable
 mongoose.set("strictQuery", false);
-const connection_url = process.env.MONGODB_URI
+const connection_url = process.env.MONGODB_URI;
 mongoose.connect(connection_url, { useNewUrlParser: true });
 mongoose.connection.once("open", () => {
   console.log("DB connected!!!");
 });
-
 // Added check for DB connection
 
 // view engine setup
