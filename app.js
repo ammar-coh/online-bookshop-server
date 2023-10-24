@@ -55,7 +55,7 @@ mongoose.set("strictQuery", false);
 const connection_url = process.env.MONGODB_URI;
 mongoose.connect(connection_url, { useNewUrlParser: true });
 mongoose.connection.once("open", () => {
-  console.log("DB connected!!!");
+  console.log("MongoDBAtlas connected!!!");
 });
 // Added check for DB connection
 
