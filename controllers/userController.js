@@ -119,8 +119,11 @@ exports.updating = async function (req, res) {
       displayName: userName
     };
     if (req.file) {
-      const url = req.file ? req.file.path : '';
-      updates.imageURL = req.protocol + '://' + req.get('host') + '/' + url.replace(/\\/g, '/'); // Add the filename of the uploaded image to the book data
+      // Handle the in-memory file differently
+      const buffer = req.file.buffer;
+      // Assuming you want to save the image as a Base64 encoded string
+      const base64Image = buffer.toString('base64');
+      updates.imageURL = `data:${req.file.mimetype};base64,${base64Image}`;
     }
     const options = { new: true };
     const user = await User.findByIdAndUpdate(id, updates, options);
