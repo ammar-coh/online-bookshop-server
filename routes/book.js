@@ -1,28 +1,45 @@
-var express = require('express');
-var router = express.Router();
-const auth = require("../auth");
+const express = require('express');
 const multer = require('multer');
+const azureStorage = require('azure-storage');
+const auth = require('../auth');
+const bookController = require('../controllers/bookController');
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, './public/uploads'); // The directory where uploaded files will be stored
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.fieldname + '-' + Date.now() + file.originalname);
-  },
+const router = express.Router();
+
+// Configure Azure Blob Storage
+const blobService = azureStorage.createBlobService('DefaultEndpointsProtocol=https;AccountName=onlinebookshop;AccountKey=IdgpasmdqNAmAbmggknbpbLmbDLLLcK5nuBH9MhAL+iz4ejTZVOSWnps+J+vZH5n7KmtDc414GzT+AStGtXMYA==;EndpointSuffix=core.windows.net');
+const containerName = 'book'; // Replace with your actual container name
+
+const upload = multer({
+  storage: multer.memoryStorage(),
 });
 
-const upload = multer({ storage });
+router.get('/list', auth, bookController.index);
 
+// Update the route using multer middleware for image uploads to Azure Blob Storage
+router.post('/list', auth, upload.single('image'), uploadToAzureBlobStorage, bookController.new);
+router.put('/list/:bookId', auth, upload.single('image'), uploadToAzureBlobStorage, bookController.updating);
+router.delete('/list/:bookId', auth, bookController.delete);
 
-var bookController = require('../controllers/bookController');
-router.get('/list',auth,  bookController.index)
-router.post('/list',auth, upload.single('image'), bookController.new);
-router.put('/list/:bookId', auth, upload.single('image'), bookController.updating)
-router.delete('/list/:bookId',auth, bookController.delete);
+function uploadToAzureBlobStorage(req, res, next) {
+  if (!req.file) {
+    return next();
+  }
 
+  const blobName = `${req.file.fieldname}-${Date.now()}-${req.file.originalname}`;
+  const stream = require('stream');
+  const bufferStream = new stream.PassThrough();
+  bufferStream.end(req.file.buffer);
 
+  blobService.createBlockBlobFromStream(containerName, blobName, bufferStream, req.file.size, (error, result, response) => {
+    if (error) {
+      return next(error);
+    }
 
-
+    // Set the image URL in the req object, so you can save it to your database if needed
+    req.imageUrl = result.name;
+    next();
+  });
+}
 
 module.exports = router;
