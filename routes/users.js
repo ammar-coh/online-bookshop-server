@@ -7,7 +7,7 @@ const auth = require('../auth');
 const router = express.Router();
 
 // Configure Azure Blob Storage
-const blobService = azureStorage.createBlobService(process.env.AZURE_KEY);
+const blobService = azureStorage.createBlobService( process.env.AZURE_KEY);
 const containerName = 'user'; // Replace with your actual container name
 
 const upload = multer({
