@@ -7,7 +7,7 @@ const bookController = require('../controllers/bookController');
 const router = express.Router();
 
 // Configure Azure Blob Storage
-const blobService = azureStorage.createBlobService( process.env.AZURE_KEY );
+const blobService = azureStorage.createBlobService(process.env.AZURE_KEY);
 const containerName = 'book'; // Replace with your actual container name
 
 const upload = multer({
