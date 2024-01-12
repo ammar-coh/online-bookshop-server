@@ -7,7 +7,7 @@ const auth = require('../auth');
 const router = express.Router();
 
 // Configure Azure Blob Storage
-const blobService = azureStorage.createBlobService(process.env.AZURE_KEY);
+const blobService = azureStorage.createBlobService('DefaultEndpointsProtocol=https;AccountName=onlinebookshop;AccountKey=IdgpasmdqNAmAbmggknbpbLmbDLLLcK5nuBH9MhAL+iz4ejTZVOSWnps+J+vZH5n7KmtDc414GzT+AStGtXMYA==;EndpointSuffix=core.windows.net');
 const containerName = 'user'; // Replace with your actual container name
 
 const upload = multer({
