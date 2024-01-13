@@ -12,7 +12,7 @@ const ChatRoom = require("./models/chatRoomModel");
 const User = require("./models/userModel");
 const Notification = require("./models/notificationModel");
 const multer = require('multer');
-
+const message = require("./sockets/message")
 //import cors from 'cors';
 
 let mongoose = require("mongoose");
@@ -98,44 +98,7 @@ io.on("connection", (socket) => {
   // Join Private Room
   socket.on("private_room", async ({ room_id, userID, participant }) => {
     socket.join(room_id);
-    await ChatRoom.collection.findOne(
-      { roomID: room_id },
-      async (err, data) => {
-        if (err) {
-          console.error("Error finding chatroom:", err);
-          return;
-        }
-
-        if (data) {
-          let messagesOfParticipant = await data.messages;
-          let user_joining_status = await data.participant_online_status;
-          for (let i = 0; i < user_joining_status?.length; i++) {
-            if (user_joining_status[i]._id.toString() == userID) {
-              user_joining_status[i].status = true;
-            }
-          }
-          for (let i = 0; i < messagesOfParticipant.length; i++) {
-            if (messagesOfParticipant[i]?.author_id == participant) {
-              messagesOfParticipant[i].isRead = true;
-            }
-          }
-          const messageUpdated = {
-            messages: messagesOfParticipant,
-            participant_online_status: user_joining_status,
-          };
-          let options = { new: true };
-
-          const draft = await ChatRoom.findByIdAndUpdate(
-            data._id.toString(),
-            messageUpdated,
-            options
-          );
-
-        } else {
-          console.log("chat room not found???");
-        }
-      }
-    );
+    message.privateRoom({room_id , userID, participant})
   });
   // leave private room
   socket.on("leave_private_room", async ({ roomID, userID }) => {
