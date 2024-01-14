@@ -9,10 +9,9 @@ const Auth = require("./auth");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 const ChatRoom = require("./models/chatRoomModel");
-const User = require("./models/userModel");
-const Notification = require("./models/notificationModel");
 const multer = require('multer');
 const message = require("./sockets/message")
+const notification  = require("./sockets/notification")
 //import cors from 'cors';
 
 let mongoose = require("mongoose");
@@ -106,158 +105,24 @@ io.on("connection", (socket) => {
   });
   // send message
   socket.on("send_message", async (data) => {
-    const receipents_status = async ({ room }) => {
-      for (let i = 0; i < room.participant_online_status?.length; i++) {
-        if (
-          room.participant_online_status[i]._id?.toString() == data.recepient_id
-        ) {
-          data.recepient_status = room.participant_online_status[i].status;
-
-        }
-      }
-
-    };
-
-    await ChatRoom.collection.findOne({ roomID: data.roomID }, (err, data) => {
-      if (err) {
-        console.error("Error finding chatroom:", err);
-        return;
-      }
-
-      if (data) {
-        receipents_status({ room: data });
-      } else {
-        console.log("error");
-      }
-    });
-
-    const saveMessageDB = async ({ room }) => {
-      let status;
-      for (let i = 0; i < room.participant_online_status?.length; i++) {
-        if (
-          room.participant_online_status[i]._id?.toString() == data.recepient_id
-        ) {
-          status = room.participant_online_status[i].status;
-        }
-      }
-
-      const message = {
-        author: data.author,
-        message: data.message,
-        author_id: data.author_id,
-        isRead: status,
-      };
-
-      await room.messages.push(message);
-      const messageUpdated = {
-        messages: room.messages,
-      };
-      let options = { new: true };
-      const chatroomMessagesSaved = await ChatRoom.findByIdAndUpdate(
-        room._id.toString(),
-        messageUpdated,
-        options
-      );
-      let real_time_chat_data = {
-        messages: chatroomMessagesSaved.messages,
-        roomID: chatroomMessagesSaved.roomID,
-        receipent_status: data,
-      }
-      socket.to(data.roomID).emit("receive_message", real_time_chat_data);
-      socket.emit("receive_message", real_time_chat_data)
-    };
-    await ChatRoom.collection.findOne({ roomID: data.roomID }, (err, data) => {
-      if (err) {
-        console.error("Error finding chatroom:", err);
-        return;
-      }
-
-      if (data) {
-        saveMessageDB({ room: data });
-      } else {
-        console.log("chat room not found");
-      }
-    });
+    message.sendMessage(data,socket)
   });
   // notification channel
-  socket.on(
-    "notification_channel",
-    async ({ message, userID, participant }) => {
-      let notification = {
-        authorUsername: message.authorUserName,
-        author_id: message.author_id,
-        message: message.message,
-        displayName: message.displayName,
-        imageURL: message.authorImage,
-        roomID: message.roomID
-      };
-      let finalNotificationObject;
-
-      let recepient = await User.findById({
-        _id: participant,
-      });
-
-      let recepient_new_notification_id =
-        await recepient.notification._id.toString();
-      let recepient_notifications = await Notification.findById({
-        _id: recepient_new_notification_id,
-      });
-      for (let i = 0; i < recepient_notifications?.messages?.length; i++) {
-        if (recepient_notifications.messages[i].author_id == userID) {
-          recepient_notifications.messages.splice(i, 1);
-          i--;
-        }
-      }
-      recepient_notifications.messages.push(notification);
-      let updatedMessagesArray = recepient_notifications.messages;
-      let messageUpdated = {
-        messages: updatedMessagesArray,
-        total: updatedMessagesArray.length
-      };
-      let options = { new: true };
-      let notificationsMessagesSaved = await Notification.findByIdAndUpdate(
-        recepient_new_notification_id,
-        messageUpdated,
-        options
-      );
-      finalNotificationObject = await notificationsMessagesSaved;
-      let participant_socket_id = userSocketMap.get(participant);
-      socket.to(participant_socket_id).emit("notification_message", { recipient_id: participant, data: finalNotificationObject });
+  socket.on( "notification_channel", async ({message, userID, participant}) => {
+    notification.messageNotification({ message, userID, participant, socket,userSocketMap })
     }
   );
   //notification delete room
   socket.on("delete_notification_message", async ({ userID, sender_id }) => {
-    let findUser = await User.findById({
-      _id: userID
-    })
+    notification.deleteMessagenotification({userID, sender_id, socket})
+}
+);
+socket.on("disconnect", () => {
+  console.log(`Socket ${socket.id} disconnected`);
 
-
-    let my_notifications = await Notification.findById({
-      _id: findUser.notification._id.toString(),
-    });
-
-    for (let i = 0; i < my_notifications?.messages?.length; i++) {
-      if (my_notifications.messages[i].author_id == sender_id) {
-        my_notifications.messages.splice(i, 1);
-        i--;
-      }
-    }
-    let updated_notification_messages = my_notifications.messages
-
-    let delete_notifications_messages_updated = await Notification.findByIdAndUpdate(
-      findUser.notification._id.toString(),
-      { messages: updated_notification_messages, total: updated_notification_messages.length },
-      { new: true }
-    );
-    socket.emit("notification_delete", { recipient_id: userID, data: delete_notifications_messages_updated });
-  });
-
-
-  socket.on("disconnect", () => {
-    console.log(`Socket ${socket.id} disconnected`);
-
-  });
 });
+});
+
 
 // Create a storage engine for Multer (you can customize this as needed)
 
