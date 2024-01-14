@@ -68,3 +68,78 @@ exports.leaveRoom= async({roomID, userID})=>{
     }
   });
 }
+
+exports.sendMessage = async(data,socket)=>{
+  const receipents_status = async ({ room }) => {
+    for (let i = 0; i < room.participant_online_status?.length; i++) {
+      if (
+        room.participant_online_status[i]._id?.toString() == data.recepient_id
+      ) {
+        data.recepient_status = room.participant_online_status[i].status;
+
+      }
+    }
+
+  };
+
+  await ChatRoom.collection.findOne({ roomID: data.roomID }, (err, data) => {
+    if (err) {
+      console.error("Error finding chatroom:", err);
+      return;
+    }
+
+    if (data) {
+      receipents_status({ room: data });
+    } else {
+      console.log("error");
+    }
+  });
+
+  const saveMessageDB = async ({ room }) => {
+    let status;
+    for (let i = 0; i < room.participant_online_status?.length; i++) {
+      if (
+        room.participant_online_status[i]._id?.toString() == data.recepient_id
+      ) {
+        status = room.participant_online_status[i].status;
+      }
+    }
+
+    const message = {
+      author: data.author,
+      message: data.message,
+      author_id: data.author_id,
+      isRead: status,
+    };
+
+    await room.messages.push(message);
+    const messageUpdated = {
+      messages: room.messages,
+    };
+    let options = { new: true };
+    const chatroomMessagesSaved = await ChatRoom.findByIdAndUpdate(
+      room._id.toString(),
+      messageUpdated,
+      options
+    );
+    let real_time_chat_data = {
+      messages: chatroomMessagesSaved.messages,
+      roomID: chatroomMessagesSaved.roomID,
+      receipent_status: data,
+    }
+    socket.to(data.roomID).emit("receive_message", real_time_chat_data);
+    socket.emit("receive_message", real_time_chat_data)
+  };
+  await ChatRoom.collection.findOne({ roomID: data.roomID }, (err, data) => {
+    if (err) {
+      console.error("Error finding chatroom:", err);
+      return;
+    }
+
+    if (data) {
+      saveMessageDB({ room: data });
+    } else {
+      console.log("chat room not found");
+    }
+  });
+}
