@@ -5,23 +5,14 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 let bodyParser = require("body-parser");
 const cors = require("cors");
-const Auth = require("./auth");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
-const ChatRoom = require("./models/chatRoomModel");
-const multer = require('multer');
-const message = require("./sockets/message")
-const notification  = require("./sockets/notification")
+const {socketModule} = require("./sockets/index") 
 //import cors from 'cors';
-
 let mongoose = require("mongoose");
-
 require("dotenv").config({ path: "./.env" });
-// console.log('secret', process.env.JWT_SECRET)
-
 // Setup server port
 var port = process.env.PORT || 8081;
-
 // Send message for default URL
 //app.get('/', (req, res) => res.send('Hello World with Express'));
 var searchRouter = require("./routes/search")
@@ -84,46 +75,9 @@ app.use(function (err, req, res, next) {
   res.render("error");
 });
 
-// socet.io user
-const userSocketMap = new Map();
-
 // Socket.IO
-io.on("connection", (socket) => {
-
-  socket.on("setUserId", ({ userId }) => {
-    // Store the user ID and socket ID association
-    userSocketMap.set(userId, socket.id);
-  });
-  // Join Private Room
-  socket.on("private_room", async ({ room_id, userID, participant }) => {
-    socket.join(room_id);
-    message.privateRoom({room_id , userID, participant})
-  });
-  // leave private room
-  socket.on("leave_private_room", async ({ roomID, userID }) => {
-    message.leaveRoom({roomID, userID})
-  });
-  // send message
-  socket.on("send_message", async (data) => {
-    message.sendMessage(data,socket)
-  });
-  // notification channel
-  socket.on( "notification_channel", async ({message, userID, participant}) => {
-    notification.messageNotification({ message, userID, participant, socket,userSocketMap })
-    }
-  );
-  //notification delete room
-  socket.on("delete_notification_message", async ({ userID, sender_id }) => {
-    notification.deleteMessagenotification({userID, sender_id, socket})
-}
-);
-socket.on("disconnect", () => {
-  console.log(`Socket ${socket.id} disconnected`);
-
-});
-});
-
-
+socketModule(io)
+;
 // Create a storage engine for Multer (you can customize this as needed)
 
 httpServer.listen(port, function () {
