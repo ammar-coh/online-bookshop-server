@@ -52,7 +52,7 @@ exports.login = async (req, res) => {
     let update = { is_online: true }
     let option = { new: true }
     let user_updated = await User.findByIdAndUpdate(id, update, option)
-
+    
     if (user_updated){
       res.status(200).json({
         message: "Login succesfull",
@@ -82,6 +82,7 @@ exports.login = async (req, res) => {
     }
   
   } catch (err) { 
+    console.error(err);
     res.status(500).json({ err: `Couldn't fint what the user in database or something went wrong` });
 
   }
@@ -204,6 +205,8 @@ exports.logout = async function (req, res) {
     const user = await User.findByIdAndUpdate(id, is_onlineStatus, options);
     const update = {
       is_online: user.is_online,
+      id: user._id,
+      userName: user.userName
     }
     if (user) {
       res.status(200).json({
