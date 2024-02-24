@@ -52,8 +52,8 @@ exports.login = async (req, res) => {
     let update = { is_online: true }
     let option = { new: true }
     let user_updated = await User.findByIdAndUpdate(id, update, option)
-    
-    if (user_updated){
+
+    if (user_updated) {
       res.status(200).json({
         message: "Login succesfull",
         token,
@@ -70,7 +70,7 @@ exports.login = async (req, res) => {
           country: user.country,
           gender: user.gender,
           email: user.email,
-          userName:user.userName
+          userName: user.userName
         },
       });
     }
@@ -80,8 +80,8 @@ exports.login = async (req, res) => {
         message: "user doesn't exist"
       })
     }
-  
-  } catch (err) { 
+
+  } catch (err) {
     console.error(err);
     res.status(500).json({ err: `Couldn't fint what the user in database or something went wrong` });
 
@@ -103,8 +103,7 @@ exports.userList = async (req, res) => {
   } catch (err) { }
 };
 
-
-exports.updating = async function (req, res) {
+exports.updating = async function (req, res, bucket, bucketName) {
   try {
     const id = req.params.userId;
     const { userName, firstName, lastName, email, password, country, age, gender } = req.body;
@@ -120,44 +119,156 @@ exports.updating = async function (req, res) {
       displayName: userName
     };
     if (req.file) {
-      // Handle the in-memory file differently
-      const buffer = req.file.buffer;
-      // Assuming you want to save the image as a Base64 encoded string
-      const base64Image = buffer.toString('base64');
-      updates.imageURL = `data:${req.file.mimetype};base64,${base64Image}`;
-    }
-    const options = { new: true };
-    const user = await User.findByIdAndUpdate(id, updates, options);
-    const update = {
-      imageURL: user.imageURL,
-      country: user.country,
-      displayName: user.displayName,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      gender: user.gender,
-      is_online: user.is_online,
-      role: user.role,
-      id: user._id,
-      age: user.ageBracket,
-      userName: user.userName
-    }
-    if (user) {
-      res.status(200).json({
-        status: true,
-        user: update
-      });
-    } else {
-      res.status(400).json({
-        status: false,
-        message: "user doesn't exist"
-      })
-    }
-  } catch (error) {
-    res.status(500).json({ error: `Couldn't fint what the user in database or something went wrong` });
+      const file = req.file;
+      const fileName = `${Date.now()}-${file.originalname}`;
+      const fileUpload = bucket.file(fileName);
 
+      const blobStream = fileUpload.createWriteStream({
+        metadata: {
+          contentType: file.mimetype
+        }
+      });
+
+      blobStream.on('error', (error) => {
+        console.log("Error uploading file:", error);
+        res.status(500).json({ error: 'Failed to upload image.' });
+      });
+
+
+      blobStream.on('finish', async () => {
+        const imageURL = await `https://storage.googleapis.com/${bucketName}/${fileName}`;
+        console.log('Uploaded image URL:', imageURL);
+        updates.imageURL = imageURL;
+
+        const options = { new: true };
+        const user = await User.findByIdAndUpdate(id, updates, options);
+
+        const update = {
+          imageURL: user.imageURL,
+          country: user.country,
+          displayName: user.displayName,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          gender: user.gender,
+          is_online: user.is_online,
+          role: user.role,
+          id: user._id,
+          age: user.ageBracket,
+          userName: user.userName
+        };
+
+        if (user) {
+          res.status(200).json({
+            status: true,
+            user: update
+          });
+        } else {
+          res.status(400).json({
+            status: false,
+            message: "User doesn't exist"
+          });
+        }
+      })
+      blobStream.end(file.buffer);
+    }
+    else{
+      const options = { new: true };
+      const user = await User.findByIdAndUpdate(id, updates, options);
+
+      const update = {
+        imageURL: user.imageURL,
+        country: user.country,
+        displayName: user.displayName,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        gender: user.gender,
+        is_online: user.is_online,
+        role: user.role,
+        id: user._id,
+        age: user.ageBracket,
+        userName: user.userName
+      };
+
+      if (user) {
+        res.status(200).json({
+          status: true,
+          user: update
+        });
+      } else {
+        res.status(400).json({
+          status: false,
+          message: "User doesn't exist"
+        });
+      }
+    }
+
+  } catch (error) {
+    res.status(500).json({ error: `Couldn't find the user in the database or something went wrong` });
   }
 };
+
+// exports.updating = async function (req, res) {
+//   console.log("????", req.file)
+//   try {
+//     const id = req.params.userId;
+//     const { userName, firstName, lastName, email, password, country, age, gender } = req.body;
+//     const updates = {
+//       firstName,
+//       lastName,
+//       email,
+//       country,
+//       ageBracket: age,
+//       gender,
+//       is_online: true,
+//       email,
+//       displayName: userName
+//     };
+//     // if (req.file) {
+//     //   // Handle the in-memory file differently
+//     //   const buffer = req.file.buffer;
+//     //   // Assuming you want to save the image as a Base64 encoded string
+//     //   const base64Image = buffer.toString('base64');
+//     //   updates.imageURL = `data:${req.file.mimetype};base64,${base64Image}`;
+//     // }
+//     if (req.file) {
+//         const newUrl = req.file ? req.file.path : '';
+//         updates.imageURL= req.protocol + '://' + req.get('host') + '/' + newUrl.replace(/\\/g, '/'); 
+//         console.log("imge", updates)
+//       }
+//     const options = { new: true };
+//     const user = await User.findByIdAndUpdate(id, updates, options);
+//     const update = {
+//       imageURL: user.imageURL,
+//       country: user.country,
+//       displayName: user.displayName,
+//       email: user.email,
+//       firstName: user.firstName,
+//       lastName: user.lastName,
+//       gender: user.gender,
+//       is_online: user.is_online,
+//       role: user.role,
+//       id: user._id,
+//       age: user.ageBracket,
+//       userName: user.userName
+//     }
+//     if (user) {
+//       res.status(200).json({
+//         status: true,
+//         user: update
+//       });
+//     } else {
+//       res.status(400).json({
+//         status: false,
+//         message: "user doesn't exist"
+//       })
+//     }
+//   } catch (error) {
+//     res.status(500).json({ error: `Couldn't fint what the user in database or something went wrong` });
+
+//   }
+// };
 
 
 exports.updatePassword = async function (req, res) {
