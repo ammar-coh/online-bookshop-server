@@ -32,7 +32,9 @@ const io = new Server(httpServer, {
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.static('public'));
 app.use('/public', express.static('public'));
-app.use(cors());
+app.use(cors({
+  origin: 'https://cerulean-sunshine-ebbf87.netlify.app',
+}));
 app.use(
   bodyParser.urlencoded({
     extended: true,
