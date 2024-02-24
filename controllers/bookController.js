@@ -8,37 +8,40 @@ exports.index = async (req, res) => {
   const list = await Book.find();
   res.status(200).json(list);
 };
-// Handle create new product
+
+
 exports.new = async function (req, res) {
-  let { price, rating, stock, title, author, description, category } = req.body;
-  var book = new Book();
-  var currentList = await Book.find();
-  Object.assign(book, {
-    price: price,
-    title: title,
-    author: author,
-    rating: rating,
-    stock: stock,
-    description: description,
-    category: category
-  });
-  if (req.file) {
-    // Handle the in-memory file differently
-    const buffer = req.file.buffer;
-    // Assuming you want to save the image as a Base64 encoded string
-    const base64Image = buffer.toString('base64');
-    updates.image = `data:${req.file.mimetype};base64,${base64Image}`;
+  try {
+    let { price, rating, stock, title, author, description, category } = req.body;
+    var book = new Book();
+    var currentList = await Book.find();
+    Object.assign(book, {
+      price: price,
+      title: title,
+      author: author,
+      rating: rating,
+      stock: stock,
+      description: description,
+      category: category
+    });
+
+    if (req.file) {
+      const imageUrl = req.imageUrl; // Get the image URL from req object
+      book.image = imageUrl; // Set the image URL in the book object
+    }
+
+    await book.save();
+    currentList.push(book);
+    res.status(200).json({
+      status: true,
+      message: "New book has been added!",
+      data: book,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "An error occurred while adding the book." });
   }
-  book.save();
-  currentList.push(book);
-  res.status(200).json({
-    status:true,
-    message: "new book has been added!",
-    data: book,
-  });
 };
 
-// Handle update product info
 exports.updating = async function (req, res) {
   try {
     const id = req.params.bookId;
@@ -52,13 +55,12 @@ exports.updating = async function (req, res) {
       description,
       category,
     };
+
     if (req.file) {
-      // Handle the in-memory file differently
-      const buffer = req.file.buffer;
-      // Assuming you want to save the image as a Base64 encoded string
-      const base64Image = buffer.toString('base64');
-      updates.image = `data:${req.file.mimetype};base64,${base64Image}`;
+      const imageUrl = req.imageUrl; // Get the image URL from req object
+      updates.image = imageUrl; // Set the image URL in the updates object
     }
+
     const options = { new: true };
     const book = await Book.findByIdAndUpdate(id, updates, options);
     if (book) {
@@ -70,13 +72,82 @@ exports.updating = async function (req, res) {
       res.status(400).json({
         status: false,
         message: "Book doesn't exist"
-      })
+      });
     }
   } catch (error) {
-    res.status(500).json({ error: `Couldn't fint what the book in database or something went wrong` });
-
+    res.status(500).json({ error: "An error occurred while updating the book." });
   }
 };
+
+// Handle create new product
+// exports.new = async function (req, res) {
+//   let { price, rating, stock, title, author, description, category } = req.body;
+//   var book = new Book();
+//   var currentList = await Book.find();
+//   Object.assign(book, {
+//     price: price,
+//     title: title,
+//     author: author,
+//     rating: rating,
+//     stock: stock,
+//     description: description,
+//     category: category
+//   });
+//   if (req.file) {
+//     // Handle the in-memory file differently
+//     const buffer = req.file.buffer;
+//     // Assuming you want to save the image as a Base64 encoded string
+//     const base64Image = buffer.toString('base64');
+//     updates.image = `data:${req.file.mimetype};base64,${base64Image}`;
+//   }
+//   book.save();
+//   currentList.push(book);
+//   res.status(200).json({
+//     status:true,
+//     message: "new book has been added!",
+//     data: book,
+//   });
+// };
+
+// // Handle update product info
+// exports.updating = async function (req, res) {
+//   try {
+//     const id = req.params.bookId;
+//     const { title, author, price, rating, stock, description, category } = req.body;
+//     const updates = {
+//       title,
+//       author,
+//       price,
+//       rating,
+//       stock,
+//       description,
+//       category,
+//     };
+//     if (req.file) {
+//       // Handle the in-memory file differently
+//       const buffer = req.file.buffer;
+//       // Assuming you want to save the image as a Base64 encoded string
+//       const base64Image = buffer.toString('base64');
+//       updates.image = `data:${req.file.mimetype};base64,${base64Image}`;
+//     }
+//     const options = { new: true };
+//     const book = await Book.findByIdAndUpdate(id, updates, options);
+//     if (book) {
+//       res.status(200).json({
+//         status: true,
+//         book: book
+//       });
+//     } else {
+//       res.status(400).json({
+//         status: false,
+//         message: "Book doesn't exist"
+//       })
+//     }
+//   } catch (error) {
+//     res.status(500).json({ error: `Couldn't fint what the book in database or something went wrong` });
+
+//   }
+// };
 // Handle delete product info
 exports.delete = async function (req, res) {
   const id = await req.params.bookId;

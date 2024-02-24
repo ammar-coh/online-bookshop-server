@@ -103,7 +103,7 @@ exports.userList = async (req, res) => {
   } catch (err) { }
 };
 
-exports.updating = async function (req, res, bucket, bucketName) {
+exports.updating = async function (req, res) {
   try {
     const id = req.params.userId;
     const { userName, firstName, lastName, email, password, country, age, gender } = req.body;
@@ -118,96 +118,30 @@ exports.updating = async function (req, res, bucket, bucketName) {
       email,
       displayName: userName
     };
+
     if (req.file) {
-      const file = req.file;
-      const fileName = `${Date.now()}-${file.originalname}`;
-      const fileUpload = bucket.file(fileName);
-
-      const blobStream = fileUpload.createWriteStream({
-        metadata: {
-          contentType: file.mimetype
-        }
-      });
-
-      blobStream.on('error', (error) => {
-        console.log("Error uploading file:", error);
-        res.status(500).json({ error: 'Failed to upload image.' });
-      });
-
-
-      blobStream.on('finish', async () => {
-        const imageURL = await `https://storage.googleapis.com/${bucketName}/${fileName}`;
-        console.log('Uploaded image URL:', imageURL);
-        updates.imageURL = imageURL;
-
-        const options = { new: true };
-        const user = await User.findByIdAndUpdate(id, updates, options);
-
-        const update = {
-          imageURL: user.imageURL,
-          country: user.country,
-          displayName: user.displayName,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          gender: user.gender,
-          is_online: user.is_online,
-          role: user.role,
-          id: user._id,
-          age: user.ageBracket,
-          userName: user.userName
-        };
-
-        if (user) {
-          res.status(200).json({
-            status: true,
-            user: update
-          });
-        } else {
-          res.status(400).json({
-            status: false,
-            message: "User doesn't exist"
-          });
-        }
-      })
-      blobStream.end(file.buffer);
-    }
-    else{
-      const options = { new: true };
-      const user = await User.findByIdAndUpdate(id, updates, options);
-
-      const update = {
-        imageURL: user.imageURL,
-        country: user.country,
-        displayName: user.displayName,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        gender: user.gender,
-        is_online: user.is_online,
-        role: user.role,
-        id: user._id,
-        age: user.ageBracket,
-        userName: user.userName
-      };
-
-      if (user) {
-        res.status(200).json({
-          status: true,
-          user: update
-        });
-      } else {
-        res.status(400).json({
-          status: false,
-          message: "User doesn't exist"
-        });
-      }
+      const imageUrl = req.imageUrl; // Get the image URL from req object
+      updates.imageURL = imageUrl; // Set the image URL in the updates object
     }
 
+    const options = { new: true };
+    const user = await User.findByIdAndUpdate(id, updates, options);
+    if (user) {
+      res.status(200).json({
+        status: true,
+        user: user
+      });
+    } else {
+      res.status(400).json({
+        status: false,
+        message: "User doesn't exist"
+      });
+    }
   } catch (error) {
-    res.status(500).json({ error: `Couldn't find the user in the database or something went wrong` });
+    res.status(500).json({ error: "An error occurred while updating the user." });
   }
 };
+
 
 // exports.updating = async function (req, res) {
 //   console.log("????", req.file)
