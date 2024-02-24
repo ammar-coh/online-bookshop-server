@@ -26,7 +26,7 @@ var app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin:["https://cerulean-sunshine-ebbf87.netlify.app/", "http://localhost:3001"],
+    origin:["https://cerulean-sunshine-ebbf87.netlify.app", "http://localhost:3001"],
   },
 });
 app.use(express.static(path.join(__dirname, "public")));
