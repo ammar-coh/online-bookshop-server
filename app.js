@@ -27,12 +27,17 @@ const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
       origin: ["https://cerulean-sunshine-ebbf87.netlify.app/","http://localhost:3001/"],
-      methods: ["GET", "POST"]
+      methods: ["GET", "POST"],
+      credentials:true,
+      allowedHeaders:['Content-Type', 'Authorization'],
+      optionsSuccessStatus: 200 
     }
 });
 var corsOptions = {
   origin: ["https://cerulean-sunshine-ebbf87.netlify.app/","http://localhost:3001/"],
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  credentials:true,
+  allowedHeaders:['Content-Type', 'Authorization'],
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
 app.use(express.static(path.join(__dirname, "public")));
