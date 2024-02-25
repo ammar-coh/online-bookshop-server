@@ -116,7 +116,7 @@ exports.updating = async function (req, res) {
       gender,
       is_online: true,
       email,
-      displayName: userName
+      displayName: userName,
     };
 
     if (req.file) {
@@ -126,10 +126,24 @@ exports.updating = async function (req, res) {
 
     const options = { new: true };
     const user = await User.findByIdAndUpdate(id, updates, options);
+    const update = {
+            imageURL: user.imageURL,
+            country: user.country,
+            displayName: user.displayName,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            gender: user.gender,
+            is_online: user.is_online,
+            role: user.role,
+            id: user._id,
+            age: user.ageBracket,
+            userName: user.userName
+          }
     if (user) {
       res.status(200).json({
         status: true,
-        user: user
+        user: update
       });
     } else {
       res.status(400).json({

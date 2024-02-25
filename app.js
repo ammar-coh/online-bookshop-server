@@ -33,13 +33,7 @@ const io = new Server(httpServer, {
       optionsSuccessStatus: 200 // some legacy browser
     }
 });
-var corsOptions = {
-  origin: ["https://cerulean-sunshine-ebbf87.netlify.app","http://localhost:3001"],
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  credentials:true,
-  allowedHeaders:['Content-Type', 'Authorization'],
-  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
-}
+
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.static('public'));
 app.use('/public', express.static('public'));
