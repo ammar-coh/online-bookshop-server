@@ -27,7 +27,6 @@ const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
       origin: ["https://cerulean-sunshine-ebbf87.netlify.app","http://localhost:3001"],
-      origin: ["https://cerulean-sunshine-ebbf87.netlify.app","http://localhost:3001"],
       methods: ["GET", "POST"],
       credentials:true,
       allowedHeaders:['Content-Type', 'Authorization'],
