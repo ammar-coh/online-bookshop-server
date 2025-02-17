@@ -5,6 +5,7 @@ const Book = require("../models/bookModel");
 
 exports.index = async (req, res) => {
   const keyword = req.query.keyword;
+ console.log('keyword', keyword)
   if (!keyword) return res.status(400).json({ error: 'Missing or empty keyword parameter' });
   try {
     const agg = [
@@ -42,6 +43,9 @@ exports.index = async (req, res) => {
         }
       }
     ];
+    console.log('agg', agg)
+
+
     const results = await Book.aggregate(agg);
     if (results.length > 0) {
       res.status(200).json({
