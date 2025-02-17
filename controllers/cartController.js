@@ -68,24 +68,43 @@ exports.new = async function (req, res) {
   
 };
 
-// Handle delete  product from cart
+// Handle delete product from cart
 exports.delete = async function (req, res) {
-  let id = req.body.id;
-  let product_id = req.body.product_id;
-  let user = await User.findById({ _id: id });
-  let cart_id = user.cart?._id.toString()
-  let user_cart = await Cart.findById({_id: cart_id})
-  let product_array = user_cart.products
-   const getProduct = product_array?.find((i) => i._id == product_id);
-   const index = product_array.findIndex((i) => i == getProduct);
-   product_array.splice(index, 1);
-   var total = user_cart.totalItems - getProduct.qty;
- 
-   let cartID =  cart_id;
-   let updates = { products: product_array, totalItems: total};
-   let options = { new: true };
-   let my_cart = await Cart.findByIdAndUpdate(cartID, updates, options);
-   res.json(my_cart);
- 
+  try {
+    let id = req.body.id;
+    let product_id = req.body.product_id;
+
+    if (!id || !product_id) {
+      return res.status(400).json({ error: "User ID and product ID are required" });
+    }
+
+    let user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    let cart_id = user?.cart?._id?.toString();
+    if (!cart_id) {
+      return res.status(404).json({ error: "Cart not found for user" });
+    }
+
+    let user_cart = await Cart.findById(cart_id);
+    let product_array = user_cart.products;
+    const getProduct = product_array?.find((i) => i._id == product_id);
+    
+    if (!getProduct) {
+      return res.status(404).json({ error: "Product not found in cart" });
+    }
+
+    const index = product_array.findIndex((i) => i == getProduct);
+    product_array.splice(index, 1);
+    var total = user_cart.totalItems - getProduct.qty;
   
+    let updates = { products: product_array, totalItems: total};
+    let options = { new: true };
+    let my_cart = await Cart.findByIdAndUpdate(cart_id, updates, options);
+    res.json(my_cart);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };

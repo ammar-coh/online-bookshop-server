@@ -8,7 +8,12 @@ const book = mongoose.Schema({
   rating: Number,
   stock: Number,
   description:String,
-  category:String
+  category:[String],
+  categoryPaths: [{ type: String, required: true }]
 });
+
+// book.index({ title: 1, author: 1 }); // Ascending order (use -1 for descending)
+
 var Book = (module.exports = mongoose.model("books", book));
 module.exports = Book;
+

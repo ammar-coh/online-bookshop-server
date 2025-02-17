@@ -22,12 +22,12 @@ const upload = multer({
   storage: multer.memoryStorage(),
 });
 
-router.get('/list', auth, bookController.index);
+router.post('/list', auth, bookController.index);
 
 // Update the route using multer middleware for image uploads to Google Cloud Storage
-router.post('/list', auth, upload.single('image'), uploadToGoogleCloudStorage, bookController.new);
+router.post('/list/add', auth, upload.single('image'), uploadToGoogleCloudStorage, bookController.new);
 router.put('/list/:bookId', auth, upload.single('image'), uploadToGoogleCloudStorage, bookController.updating);
-router.delete('/list/:bookId', auth, bookController.delete);
+router.delete('/list/:bookId', bookController.delete);
 
 function uploadToGoogleCloudStorage(req, res, next) {
   if (!req.file) {
